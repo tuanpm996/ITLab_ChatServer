@@ -7,7 +7,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 public class User {
-	public static int nbUser = 0;
 	private int userId;
 	private PrintStream streamOut;
 	private InputStream streamIn;
@@ -23,10 +22,8 @@ public class User {
 		this.streamIn = client.getInputStream();
 		this.client = client;
 		this.nickname = name;
-		this.userId = nbUser;
 		this.isSignedIn = true;
 		this.blockedUsers = new ArrayList<User>();
-		User.nbUser += 1;
 	}
 
 	public User(Socket client) throws IOException {
@@ -81,14 +78,6 @@ public class User {
 		this.isSignedIn = isSignedIn;
 	}
 
-	public static int getNbUser() {
-		return nbUser;
-	}
-
-	public static void setNbUser(int nbUser) {
-		User.nbUser = nbUser;
-	}
-
 	public PrintStream getStreamOut() {
 		return streamOut;
 	}
@@ -123,6 +112,10 @@ public class User {
 
 	public void setActive(boolean isActive) {
 		this.isActive = isActive;
+	}
+
+	public void logIn(String user) {
+
 	}
 
 }

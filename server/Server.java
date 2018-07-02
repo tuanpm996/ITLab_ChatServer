@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -19,7 +20,7 @@ public class Server {
 		return this.clients;
 	}
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException {
 		new Server(12345).run();
 	}
 
@@ -30,7 +31,7 @@ public class Server {
 		this.sockets = new ArrayList<Socket>();
 	}
 
-	public void run() throws IOException {
+	public void run() throws IOException, ClassNotFoundException, SQLException {
 		try {
 			this.server = new ServerSocket(port);
 		} catch (IOException e) {
@@ -55,7 +56,13 @@ public class Server {
 					if (command.equals("2")) {
 						User newUser = new User(client);
 						this.clients.add(newUser);
-						newUser.getOutStream().println("type ^ + username + % + password to register: ");
+						newUser.getOutStream().println("type ^ + username to register: ");
+						new Thread(new UserHandler(this, newUser)).start();
+					} else {
+						System.out.println("else");
+						User newUser = new User(client);
+						this.clients.add(newUser);
+						newUser.getOutStream().println("\nChoose what to do:\n1.Sign in 2.Sign up");
 						new Thread(new UserHandler(this, newUser)).start();
 					}
 				}
