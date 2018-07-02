@@ -1,4 +1,4 @@
-package Server;
+package server;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,9 +34,7 @@ public class User {
 		this.streamIn = client.getInputStream();
 		this.client = client;
 		this.isSignedIn = false;
-		// this.userId = nbUser;
-		// this.blockedUsers = new ArrayList<User>();
-		// User.nbUser += 1;
+		this.blockedUsers = new ArrayList<User>();
 	}
 
 	public PrintStream getOutStream() {

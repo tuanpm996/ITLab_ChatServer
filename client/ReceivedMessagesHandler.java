@@ -1,4 +1,4 @@
-package Client;
+package client;
 
 import java.io.InputStream;
 import java.util.Scanner;
@@ -19,7 +19,6 @@ public class ReceivedMessagesHandler implements Runnable {
 		while (sc.hasNextLine()) {
 			message = sc.nextLine();
 			if (message.length() > 0) {
-				// if server send username
 				switch (message.charAt(0)) {
 				case '@':
 					String userName = message.substring(1);

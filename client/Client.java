@@ -1,4 +1,4 @@
-package Client;
+package client;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -41,7 +41,6 @@ public class Client {
 
 		String message;
 		while (sc.hasNextLine() && !(message = sc.nextLine()).equals("")) {
-//			message = sc.nextLine();
 			if (this.userChatWith != null) {
 				System.out.println("You message " + this.userChatWith + ": " + message);
 			} else {

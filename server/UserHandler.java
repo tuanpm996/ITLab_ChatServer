@@ -1,4 +1,4 @@
-package Server;
+package server;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -45,10 +45,12 @@ public class UserHandler implements Runnable {
 				StringBuilder sb = new StringBuilder();
 				sb.append("List users:\n");
 				for (User user : this.server.getClients()) {
-					sb.append(user.getNickname());
-					sb.append("-");
-					sb.append(user.getUserId());
-					sb.append("\n");
+					if (user.isSignedIn()) {
+						sb.append(user.getNickname());
+						sb.append("-");
+						sb.append(user.getUserId());
+						sb.append("\n");
+					}
 				}
 				sb.append("\nType @ + id of person you want to chat with: \n");
 				this.user.getOutStream().println(sb.toString());
@@ -68,7 +70,7 @@ public class UserHandler implements Runnable {
 				}
 				break;
 
-			// block
+			// unblock
 			case '*':
 				try {
 					int userId = Integer.parseInt(message.substring(1));
@@ -88,13 +90,15 @@ public class UserHandler implements Runnable {
 					try {
 						User user = this.getUser(message.substring(1), this.user);
 						if (user == null) {
-							User userInsert = this.insertUser(message.substring(1), this.user);
-							this.user = userInsert;
-							this.user.getOutStream().println("you registered");
+							this.insertUser(message.substring(1), this.user);
+							this.user = this.getUser(message.substring(1), this.user);
+							this.user.setSignedIn(true);
+							this.user.setSignedIn(true);
+							this.user.getOutStream().println("you registered and login");
+							this.getIntroduction(server, user);
 						} else {
 							this.user.getOutStream().println("you can not register");
 						}
-						this.user.getOutStream().println("you registered");
 					} catch (ClassNotFoundException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -106,34 +110,36 @@ public class UserHandler implements Runnable {
 				} else {
 					this.user.getOutStream().println("You logged in so cant register");
 				}
-				// System.out.println(message);
 				break;
 
 			// sign in
 			case '#':
-				this.user.setNickname(message.substring(1));
-				this.user.setSignedIn(true);
-				// System.out.println(message);
-				try {
-					User user = this.getUser(message.substring(1), this.user);
-					System.out.println(message.substring(1));
-					System.out.println(user.isActive());
-					if (user != null && user.isActive() && !user.isSignedIn()) {
-						this.user = user;
-						System.out.println(user.getUserId());
-						this.user.getOutStream().println("You logged in");
-					} else {
-						this.user.getOutStream().println("You can't login\nChoose what to do: \\n1.Sign in 2.Sign up");
+				if (!this.user.isSignedIn()) {
+					try {
+						User user = this.getUser(message.substring(1), this.user);
+						if (user != null && user.isActive()) {
+							this.user = user;
+							this.user.setNickname(message.substring(1));
+							this.user.setSignedIn(true);
+							System.out.println(user.getUserId());
+							this.user.getOutStream().println("You logged in");
+							this.getIntroduction(server, user);
+						} else {
+							this.user.getOutStream()
+									.println("You can't login\nChoose what to do:\n1.Sign in 2.Sign up");
+						}
+
+					} catch (ClassNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
+				} else {
+					this.user.getOutStream().println("You're logged in");
 
-				} catch (ClassNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (SQLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
-
 				break;
 			case '1':
 				this.user.getOutStream().println("type # + username to login: ");
@@ -175,29 +181,40 @@ public class UserHandler implements Runnable {
 		while (rs.next()) {// Di chuyển con trỏ xuống bản ghi kế tiếp.
 			userId = rs.getInt("id");
 			isActive = rs.getBoolean("isActive");
-			System.out.println(isActive);
 			user.setActive(isActive);
 			user.setUserId(userId);
+			return user;
 		}
-		return user;
+		return null;
 	}
 
-	public static User insertUser(String username, User user) throws ClassNotFoundException, SQLException {
+	public static int insertUser(String username, User user) throws ClassNotFoundException, SQLException {
+		System.out.println("insert");
 		Class.forName("com.mysql.jdbc.Driver");
 		Connection conn = null;
 		conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/Chat", "root", "abcd1234");
 		java.sql.Statement stm = conn.createStatement();
-		ResultSet rs = stm.executeQuery("insert into User (username) values ('" + username + "')");
+		int rs = stm.executeUpdate("insert into User (username) VALUES ('" + username + "')");
+		return rs;
+	}
 
-		int userId;
-		boolean isActive;
-		while (rs.next()) {// Di chuyển con trỏ xuống bản ghi kế tiếp.
-			userId = rs.getInt("id");
-			isActive = rs.getBoolean("isActive");
-			System.out.println(isActive);
-			user.setActive(isActive);
-			user.setUserId(userId);
+	private void getIntroduction(Server server, User user) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Hello ");
+		sb.append(user.getNickname());
+		sb.append("\nList users:\n");
+		for (User client : server.getClients()) {
+			if (client.isSignedIn()) {
+				sb.append(client.getNickname());
+				sb.append("-");
+				sb.append(client.getUserId());
+				sb.append("\n");
+			}
 		}
-		return user;
+		sb.append("Type @ + id of person you want to chat with: \n");
+		sb.append("Type & to know users list: \n");
+		sb.append("Type $ + id of person you want to block: \n");
+		sb.append("Type * + id of person you want to unblock: \n");
+		user.getOutStream().println(sb.toString());
 	}
 }
